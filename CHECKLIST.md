@@ -1,57 +1,50 @@
-# FastClass — чек-лист запуска
+# FastClass — чек-лист развёртывания
 
-Быстрый запуск всего монорепозитория описан в [DEPLOYMENT.md](DEPLOYMENT.md).
-Стек не привязан к конкретному домену, nginx или TLS-провайдеру: эти элементы
-настраиваются снаружи, если нужны для конкретного окружения.
+1. **Ссылка на репозиторий:** `https://github.com/ArseniyKvasov/FastClassCU.git`.
 
-## Сервисы
+2. **Ожидаемый URL:** задаётся переменными `PUBLIC_BASE_URL` и
+   `AUTH_SERVICE_PUBLIC_BASE_URL` в `.env`; домен не зашит в код или Compose.
 
-| Сервис | Host-порт по умолчанию | БД | Redis | Health endpoints | Миграции |
-|---|---:|---|---|---|---|
-| `frontend-service` | 8080 | — | — | `/health`, `/ready` | — |
-| `auth-service` | 8001 | Postgres | Redis | `/health`, `/ready` | `auth-migrate` |
-| `ai-assistant-service` | 8002 | Postgres | Redis | `/health`, `/ready` | `ai-assistant-migrate` |
-| `content-service` | 8003 | Postgres | Redis | `/health`, `/ready` | `content-migrate` |
-| `classroom-service` | 8004 | Postgres | Redis | `/health`, `/ready` | `classroom-migrate` |
-| `assignments-service` | 8005 | Postgres | Redis | `/health`, `/ready` | `assignments-migrate` |
-| `answers-service` | 8006 | Postgres | Redis | `/health`, `/ready` | `answers-migrate` |
-| `collaboration-service` | 8007 | Postgres | Redis | `/health`, `/ready` | `collaboration-migrate` |
-| `analytics-service` | 8010 | Postgres | Redis | `/health`, `/ready` | `analytics-migrate` |
+3. **Публичный доступ:** frontend и auth-service должны быть доступны браузеру.
+   Остальные сервисы можно оставить доступными только из приватной сети.
 
-Все порты настраиваются в корневом `.env`. Приложения внутри контейнеров всегда
-слушают `8000`, а Compose публикует назначенный host-порт.
+4. **Сетевой доступ к Jupyter/VPN:** не требуется для базовой работы. Если
+   внешние системы подключаются к API, доступ настраивается на уровне сети или
+   reverse proxy.
 
-## Сеть
+5. **Сетевой доступ из сервисов:** нужен к OAuth-провайдерам, AI-провайдерам и,
+   при использовании, к LiveKit и Whiteboard.
 
-Все сервисы опубликованы на localhost для разработки и диагностики, но их
-внутренние запросы идут по Docker DNS:
+6. **CORS:** для collaboration-service укажите browser origins в `CORS_ORIGINS`.
+   Для frontend-service оставьте same-origin либо задайте `CORS_ALLOW_ORIGINS`.
 
-| Откуда | Куда | Назначение |
-|---|---|---|
-| `frontend-service` | `auth-service`, `content-service`, `classroom-service`, `assignments-service` | BFF API для SPA |
-| `answers-service` | `content-service`, `auth-service`, `classroom-service`, `assignments-service` | ответы и авторизация |
-| `assignments-service` | `classroom-service` | проверка участников класса |
-| `ai-assistant-service` | `content-service`, `auth-service` | создание уроков |
-| `collaboration-service` | `answers-service`, `auth-service`, `classroom-service`, `assignments-service` | совместное редактирование |
-| все event producers/consumers | `analytics-redis` | Redis Streams event bus |
+7. **PostgreSQL/Redis:** для каждого backend-сервиса Compose запускает отдельные
+   PostgreSQL и Redis-контейнеры. Для production следует предусмотреть ресурсы
+   под восемь PostgreSQL и восемь Redis-инстансов либо вынести их в managed
+   инфраструктуру.
 
-## Файлы данных
+8. **Переменные окружения:** единый список находится в корневом `.env.example`.
+   Перед публичным запуском нужно заменить development-секреты и заполнить
+   необходимые OAuth/integration credentials.
 
-- `.env` — единственный runtime-конфиг всего стека; не коммитится.
-- `auth-service/keys/private.pem` — ключ подписи JWT; принадлежит только
-  auth-сервису и не коммитится.
-- `auth-service/keys/public.pem` — публичный ключ, монтируется read-only во
-  все сервисы, которым он нужен.
-- `content-service/storage`, `answers-service/storage`,
-  `analytics-service/storage` — локальные хранилища файлов.
+9. **Монтируемые файлы:** `.env`, `auth-service/keys/` и директории storage
+   сервисов. JWT-ключи создаются автоматически контейнером `keys-init`.
 
-## Публичное окружение
+10. **Проверка готовности:** используйте `GET /ready` у каждого сервиса после
+    запуска зависимостей и миграций. Для liveness используйте `GET /health`.
 
-Перед публикацией:
+11. **Проверка работоспособности:** Docker Compose перезапускает long-running
+    контейнеры согласно своей политике запуска; внешний orchestrator может
+    опрашивать `/health` и перезапускать сервис при длительной недоступности.
 
-1. Замените development-секреты в корневом `.env` случайными значениями.
-2. Укажите фактический browser URL в `PUBLIC_BASE_URL`.
-3. Включите `COOKIE_SECURE=true` для HTTPS.
-4. При необходимости задайте `COOKIE_DOMAIN`, `CORS_ORIGINS` и
-   `PUBLIC_WS_BASE_URL` для вашей схемы доменов и reverse proxy.
-5. Настройте внешний TLS/reverse proxy отдельно от репозитория.
+12. **Реплики:** сервисы можно масштабировать на уровне orchestrator, но
+    migration-контейнеры должны выполняться единожды перед новой версией.
+
+13. **Порт приложения:** все контейнеры читают `PORT` и по умолчанию слушают
+    `8000`. Host-порты настраиваются в корневом `.env`.
+
+14. **Dockerfile:** каждый сервис имеет собственный Dockerfile и запускается из
+    корневого `compose.yml`.
+
+15. **Миграции БД:** запускаются отдельными контейнерами `<service>-migrate`
+    до старта приложения. Они не выполняются в `CMD` основного контейнера.
