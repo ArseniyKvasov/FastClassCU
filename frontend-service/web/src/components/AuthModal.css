@@ -1,0 +1,71 @@
+/*
+ * Ported verbatim from authapp/static/auth/socialAuth.js's _ensureStyles()
+ * inline <style> block (id="social-auth-modal-styles").
+ */
+.social-auth-modal-content {
+    border: 1px solid var(--fc-modal-border, #dfe7f4);
+}
+.social-auth-caption {
+    color: #4f6287;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.social-auth-logo-wrap {
+    display: flex;
+    justify-content: center;
+}
+.social-auth-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #16a34a 0%, #34d399 100%);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+}
+.social-auth-logo-letter {
+    font-weight: 800;
+    font-size: 1.02rem;
+    letter-spacing: -0.01em;
+}
+.social-auth-title {
+    color: #1f2f48;
+    font-size: 1.02rem;
+}
+.social-auth-subtitle {
+    color: #6c7f9f;
+    font-size: 0.86rem;
+    min-height: 1.35rem;
+}
+.social-auth-button {
+    background: #ffffff;
+    border: 1px solid #d7e2f3;
+    border-radius: 12px;
+    transition: background-color 0.14s ease, border-color 0.14s ease, opacity 0.14s ease;
+    min-height: 44px;
+}
+.social-auth-button:hover:not(:disabled) {
+    background: #f4f8ff;
+    border-color: #c7d8f2;
+}
+.social-auth-button:focus-visible {
+    outline: 2px solid #72b2ff;
+    outline-offset: 2px;
+}
+.social-auth-button-label {
+    color: #2a3f63;
+}
+.social-auth-button:disabled {
+    opacity: 0.78;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+.social-auth-button--vk {
+    border-color: #d5e0f3;
+}

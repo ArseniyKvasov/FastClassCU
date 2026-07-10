@@ -1,0 +1,12 @@
+providers:
+  - key: testprovider
+    display_name: "Test Provider"
+    client_id: "${TESTPROVIDER_CLIENT_ID}"
+    client_secret: "${TESTPROVIDER_CLIENT_SECRET}"
+    authorize_url: "https://example.com/oauth/authorize"
+    token_url: "https://example.com/oauth/token"
+    userinfo_url: "https://example.com/oauth/userinfo"
+    scope: "profile"
+    user_id_field: "id"
+    email_field: "email"
+    name_field: "name"

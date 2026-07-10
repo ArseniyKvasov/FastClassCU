@@ -1,0 +1,50 @@
+.fc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--fc-color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--fc-space-4);
+  z-index: 1000;
+}
+
+.fc-modal {
+  background: var(--fc-color-surface-raised);
+  border-radius: var(--fc-radius-lg);
+  box-shadow: var(--fc-shadow-md);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.fc-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--fc-space-5) var(--fc-space-5) 0;
+}
+
+.fc-modal__title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.fc-modal__close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--fc-color-text-muted);
+  padding: var(--fc-space-1);
+}
+
+.fc-modal__close:hover {
+  color: var(--fc-color-text);
+}
+
+.fc-modal__body {
+  padding: var(--fc-space-5);
+}

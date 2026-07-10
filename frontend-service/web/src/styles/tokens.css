@@ -1,0 +1,86 @@
+:root {
+  --fc-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --fc-space-1: 4px;
+  --fc-space-2: 8px;
+  --fc-space-3: 12px;
+  --fc-space-4: 16px;
+  --fc-space-5: 24px;
+  --fc-space-6: 32px;
+  --fc-space-8: 48px;
+
+  --fc-radius-sm: 6px;
+  --fc-radius-md: 10px;
+  --fc-radius-lg: 16px;
+
+  --fc-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --fc-shadow-md: 0 4px 16px rgba(15, 23, 42, 0.12);
+
+  --fc-transition-fast: 120ms ease;
+
+  /*
+   * Brand palette ported from the FastLesson-NoAI monolith (core/static/css/
+   * base.css, landing.css, entrance.css) so the new FastClass frontend keeps
+   * the same visual identity: brand green primary, navy text, soft blue-gray
+   * surfaces. --fc-brand-gradient is the signature green button/logo fill.
+   */
+  --fc-brand-gradient: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  --fc-brand-gradient-hover: linear-gradient(180deg, #1fb455 0%, #15803d 100%);
+  --fc-color-accent-blue: #2563eb;
+
+  /* light theme (default) */
+  --fc-color-bg: #ffffff;
+  --fc-color-surface: #ffffff;
+  --fc-color-surface-raised: #ffffff;
+  --fc-color-border: #dfe7f4;
+  --fc-color-text: #1f2f48;
+  --fc-color-text-muted: #5b6f91;
+  --fc-color-primary: #16a34a;
+  --fc-color-primary-hover: #15803d;
+  --fc-color-primary-contrast: #ffffff;
+  --fc-color-danger: #e05555;
+  --fc-color-danger-hover: #c23f3f;
+  --fc-color-success: #16a34a;
+  --fc-color-focus-ring: #16a34a;
+  --fc-color-overlay: rgba(15, 23, 42, 0.45);
+}
+
+:root[data-theme="dark"] {
+  --fc-color-bg: #12161f;
+  --fc-color-surface: #1a1f2b;
+  --fc-color-surface-raised: #212736;
+  --fc-color-border: #2c3344;
+  --fc-color-text: #edf1fa;
+  --fc-color-text-muted: #97a2ba;
+  --fc-color-primary: #34d399;
+  --fc-color-primary-hover: #5fe0af;
+  --fc-color-primary-contrast: #0b1710;
+  --fc-color-danger: #ee8579;
+  --fc-color-danger-hover: #f2a094;
+  --fc-color-success: #34d399;
+  --fc-color-focus-ring: #34d399;
+  --fc-color-overlay: rgba(0, 0, 0, 0.6);
+  --fc-brand-gradient: linear-gradient(180deg, #34d399 0%, #16a34a 100%);
+  --fc-brand-gradient-hover: linear-gradient(180deg, #46e0a8 0%, #1fb455 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --fc-color-bg: #12161f;
+    --fc-color-surface: #1a1f2b;
+    --fc-color-surface-raised: #212736;
+    --fc-color-border: #2c3344;
+    --fc-color-text: #edf1fa;
+    --fc-color-text-muted: #97a2ba;
+    --fc-color-primary: #34d399;
+    --fc-color-primary-hover: #5fe0af;
+    --fc-color-primary-contrast: #0b1710;
+    --fc-color-danger: #ee8579;
+    --fc-color-danger-hover: #f2a094;
+    --fc-color-success: #34d399;
+    --fc-color-focus-ring: #34d399;
+    --fc-color-overlay: rgba(0, 0, 0, 0.6);
+    --fc-brand-gradient: linear-gradient(180deg, #34d399 0%, #16a34a 100%);
+    --fc-brand-gradient-hover: linear-gradient(180deg, #46e0a8 0%, #1fb455 100%);
+  }
+}

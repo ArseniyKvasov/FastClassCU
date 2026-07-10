@@ -1,0 +1,32 @@
+.fc-toast-viewport {
+  position: fixed;
+  bottom: var(--fc-space-5);
+  right: var(--fc-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fc-space-2);
+  z-index: 2000;
+}
+
+.fc-toast {
+  background: var(--fc-color-surface-raised);
+  border: 1px solid var(--fc-color-border);
+  border-radius: var(--fc-radius-md);
+  box-shadow: var(--fc-shadow-sm);
+  padding: var(--fc-space-3) var(--fc-space-4);
+  font-size: 14px;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.fc-toast--success {
+  border-left: 3px solid var(--fc-color-success);
+}
+
+.fc-toast--error {
+  border-left: 3px solid var(--fc-color-danger);
+}
+
+.fc-toast--info {
+  border-left: 3px solid var(--fc-color-primary);
+}

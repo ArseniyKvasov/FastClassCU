@@ -1,0 +1,27 @@
+# IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Python (fallback; each service also has its own .gitignore)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node (fallback; each service also has its own .gitignore)
+node_modules/
+dist/
+
+# Env files (fallback; each service also has its own .gitignore)
+.env
+.env.*
+!.env.example
+
+# Misc
+*.log
+dump.rdb

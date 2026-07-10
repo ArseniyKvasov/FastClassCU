@@ -1,0 +1,40 @@
+# Declarative OAuth provider registry.
+#
+# Adding a new business's identity provider means adding an entry here and
+# restarting the service — no code change. `auth-service` only ever talks
+# to providers through this generic config, never through provider-specific
+# code paths.
+#
+# Field notes:
+#   user_id_field / email_field / name_field: dotted path into the JSON
+#     response from userinfo_url, e.g. "id" or "response.0.id" (VK wraps
+#     its result in {"response": [...]}). Missing/optional fields -> null.
+#   extra_userinfo_params: query params always appended to the userinfo
+#     request (VK requires an API version, for example).
+
+providers:
+  - key: yandex
+    display_name: "Yandex"
+    client_id: "${YANDEX_CLIENT_ID}"
+    client_secret: "${YANDEX_CLIENT_SECRET}"
+    authorize_url: "https://oauth.yandex.ru/authorize"
+    token_url: "https://oauth.yandex.ru/token"
+    userinfo_url: "https://login.yandex.ru/info"
+    scope: ""
+    user_id_field: "id"
+    email_field: "default_email"
+    name_field: "real_name"
+
+  - key: vk
+    display_name: "VKontakte"
+    client_id: "${VK_CLIENT_ID}"
+    client_secret: "${VK_CLIENT_SECRET}"
+    authorize_url: "https://oauth.vk.com/authorize"
+    token_url: "https://oauth.vk.com/access_token"
+    userinfo_url: "https://api.vk.com/method/users.get"
+    extra_userinfo_params:
+      v: "5.131"
+    scope: ""
+    user_id_field: "response.0.id"
+    email_field: null
+    name_field: "response.0.first_name"

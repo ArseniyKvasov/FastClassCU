@@ -1,0 +1,19 @@
+/*
+ * Ported verbatim from the inline <style> block in FastLesson-NoAI's
+ * core/templates/core/base.html <head>.
+ */
+@font-face {
+    font-family: 'Montserrat';
+    src: url("../fonts/montserrat/Montserrat-VariableFont_wght.ttf") format('truetype');
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f6f9fb;
+    font-family: 'Montserrat', 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+}

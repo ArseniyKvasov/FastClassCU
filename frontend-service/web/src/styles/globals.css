@@ -1,0 +1,38 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fc-font-sans);
+  background: var(--fc-color-bg);
+  color: var(--fc-color-text);
+  transition: background var(--fc-transition-fast), color var(--fc-transition-fast);
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--fc-color-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--fc-color-focus-ring);
+  outline-offset: 2px;
+}

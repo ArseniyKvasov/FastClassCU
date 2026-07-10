@@ -1,0 +1,17 @@
+service_clients:
+  - client_id: answers-service
+    display_name: Answers Service
+    client_secret: ${ANSWERS_SERVICE_CLIENT_SECRET}
+    scopes:
+      - content:answer-key:read
+      - answers:collab-snapshot:write
+  - client_id: ai-assistant-service
+    display_name: AI Assistant Service
+    client_secret: ${AI_ASSISTANT_SERVICE_CLIENT_SECRET}
+    scopes:
+      - content:lesson-draft:write
+  - client_id: collaboration-service
+    display_name: Collaboration Service
+    client_secret: ${COLLABORATION_SERVICE_CLIENT_SECRET}
+    scopes:
+      - answers:collab-snapshot:write

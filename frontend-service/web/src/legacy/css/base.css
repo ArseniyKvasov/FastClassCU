@@ -1,0 +1,689 @@
+:root {
+    /*
+     * Brand "light green" success color. Bootstrap's --bs-success defaults
+     * to a darker green (#198754); the app's brand uses #16a34a. Override
+     * only --bs-success (and its derived state variables) here so
+     * btn-success / text-success / bg-success / border-success / etc.
+     * render the brand color while keeping their correct semantic meaning.
+     * Do NOT override --bs-primary - primary must stay Bootstrap's blue.
+     */
+    --bs-success: #16a34a;
+    --bs-success-rgb: 22, 163, 74;
+    --bs-success-text-emphasis: #0f5132;
+    --bs-success-bg-subtle: #d7f2e1;
+    --bs-success-border-subtle: #a9e2bf;
+
+    --fc-modal-surface: #ffffff;
+    --fc-modal-surface-soft: #f9fbff;
+    --fc-modal-border: #dfe7f4;
+    --fc-modal-text: #1f2f48;
+    --fc-modal-muted: #5b6f91;
+    --fc-modal-shadow: 0 16px 40px rgba(16, 36, 75, 0.18);
+
+    /*
+     * Global z-index scale for the virtual classroom / whiteboard UI.
+     * Sequential, low integers - each layer is exactly one step above
+     * the layer it must render on top of. Keep all new stacking
+     * contexts plugged into this scale instead of inventing new values.
+     */
+    --z-base: 1;                 /* task/assignment cards, base content */
+    --z-canvas-overlay: 2;       /* whiteboard canvas drawing overlay */
+    --z-card-raised: 3;          /* a card temporarily raised above its siblings */
+    --z-annotation: 4;           /* text editor / annotation host on top of canvas */
+    --z-card-controls: 5;        /* in-card floating controls (audio/pdf toolbars) */
+    --z-card-hover-controls: 6;  /* hover controls, drag handle, click blocker */
+    --z-wb-panel: 7;             /* whiteboard tool launcher + tool panel */
+    --z-sticky-bar: 8;           /* mobile sticky section bar, dragged section badge */
+    --z-local-loader: 9;         /* section/card-local loading overlays */
+    --z-dropdown: 10;            /* in-page dropdowns and popovers */
+    --z-panel-bar: 11;           /* classroom bottom control panel bar */
+    --z-side-panel: 12;          /* chat panel / AI assistant panel */
+    --z-panel-resize: 13;        /* resize handle on the side panels */
+    --z-navbar: 14;              /* app navbar */
+    --z-navbar-menu: 15;         /* navbar account/logout menu */
+    --z-wb-panel-global: 7;      /* whiteboard panel rendered outside its card's stacking context */
+    --z-modal: 17;               /* whiteboard/PDF/word-practice/confirm modals */
+    --z-page-loader: 18;         /* full classroom page loader */
+    --z-toast: 19;                /* toast notifications */
+    --z-drag-ghost: 20;           /* touch drag ghost, must clear everything while dragging */
+}
+
+/*
+ * Bootstrap's .btn-success / .btn-outline-success hardcode their own
+ * --bs-btn-* state colors rather than deriving from --bs-success, so the
+ * --bs-success override above doesn't recolor the button states on its
+ * own. Re-point those component-scoped variables at the brand green so
+ * hover/active/focus states stay in sync, without touching .btn-success's
+ * selector body or using !important.
+ */
+.btn-success {
+    --bs-btn-bg: var(--bs-success);
+    --bs-btn-border-color: var(--bs-success);
+    --bs-btn-hover-bg: #15803d;
+    --bs-btn-hover-border-color: #15803d;
+    --bs-btn-active-bg: #15803d;
+    --bs-btn-active-border-color: #15803d;
+    --bs-btn-disabled-bg: var(--bs-success);
+    --bs-btn-disabled-border-color: var(--bs-success);
+    --bs-btn-focus-shadow-rgb: var(--bs-success-rgb);
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--bs-success);
+    --bs-btn-border-color: var(--bs-success);
+    --bs-btn-hover-bg: var(--bs-success);
+    --bs-btn-hover-border-color: var(--bs-success);
+    --bs-btn-active-bg: var(--bs-success);
+    --bs-btn-active-border-color: var(--bs-success);
+    --bs-btn-disabled-color: var(--bs-success);
+    --bs-btn-disabled-border-color: var(--bs-success);
+    --bs-btn-focus-shadow-rgb: var(--bs-success-rgb);
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.app-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-navbar);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e3eaf4;
+    box-shadow: 0 6px 18px rgba(16, 36, 75, 0.045);
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+.app-navbar-inner {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.app-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #1f2f48;
+    font-weight: 700;
+    text-decoration: none;
+    margin: 0;
+}
+
+.app-brand:hover,
+.app-brand:active,
+.app-brand:focus {
+    color: #1f2f48;
+}
+
+.app-brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+}
+
+.app-nav-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.app-nav-link {
+    color: #2f5f3f;
+    text-decoration: none;
+    border: 1px solid #cfe9d6;
+    background: #f4fcf7;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+.app-nav-link:hover {
+    color: #166534;
+    background: #e9f9ef;
+}
+
+.app-user-badge {
+    border: 1px solid #d7e1ef;
+    background: #fff;
+    color: #4a5f81;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+.app-user-badge-btn {
+    cursor: pointer;
+    font: inherit;
+    line-height: inherit;
+}
+
+.app-home-account {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.app-home-logout-btn {
+    white-space: nowrap;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: var(--z-navbar-menu);
+    min-height: 36px;
+    padding: 0.45rem 0.82rem;
+    border-radius: 12px;
+    border: 1px solid #f2c4c4;
+    background: #fff4f4;
+    color: #b42318;
+    box-shadow: 0 10px 24px rgba(16, 36, 75, 0.14);
+}
+
+.app-home-logout-btn:hover {
+    background: #ffe8e8;
+    border-color: #eaa2a2;
+    color: #8f1d1d;
+}
+
+.app-main {
+    padding-top: 60px;
+}
+
+.app-main-preview {
+    padding-top: 0;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+.modal-backdrop {
+    --bs-backdrop-bg: #13223f;
+    --bs-backdrop-opacity: 0.34;
+    z-index: calc(var(--z-modal) - 1);
+}
+
+.modal {
+    z-index: var(--z-modal);
+}
+
+/*
+ * Bootstrap's offcanvas panels (e.g. #lessonMaterialPanel) default to
+ * --bs-offcanvas-zindex: 1045, way outside this app's z-index scale. Without
+ * this override they render above everything plugged into --z-modal,
+ * including confirmAction()'s dialog when it's triggered from inside one.
+ */
+.offcanvas-backdrop {
+    z-index: calc(var(--z-modal) - 1);
+}
+
+.offcanvas {
+    --bs-offcanvas-zindex: var(--z-modal);
+}
+
+.modal:not(#whiteboardModal) .modal-dialog {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.modal:not(#whiteboardModal) .modal-content {
+    border: 0;
+    border-radius: 18px;
+    background: linear-gradient(180deg, var(--fc-modal-surface) 0%, var(--fc-modal-surface-soft) 100%);
+    box-shadow: var(--fc-modal-shadow);
+    overflow: hidden;
+}
+
+.modal:not(#whiteboardModal) .modal-header {
+    border-bottom: 0;
+    padding: 1rem 1.15rem 0.45rem;
+}
+
+.modal:not(#whiteboardModal) .modal-title {
+    color: var(--fc-modal-text);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.modal:not(#whiteboardModal) .modal-body {
+    padding: 0.8rem 1.15rem 1rem;
+}
+
+.modal:not(#whiteboardModal) .modal-footer {
+    border-top: 0;
+    padding: 0.45rem 1.15rem 1.05rem;
+}
+
+.modal:not(#whiteboardModal) .form-control,
+.modal:not(#whiteboardModal) .form-select,
+.modal:not(#whiteboardModal) textarea.form-control {
+    border-color: #d6e0ef;
+    border-radius: 11px;
+    box-shadow: none;
+    color: var(--fc-modal-text);
+    background-color: #ffffff;
+}
+
+.modal:not(#whiteboardModal) .form-control:focus,
+.modal:not(#whiteboardModal) .form-select:focus,
+.modal:not(#whiteboardModal) textarea.form-control:focus {
+    border-color: #9dbef7;
+    box-shadow: 0 0 0 0.2rem rgba(67, 126, 236, 0.16);
+}
+
+.modal:not(#whiteboardModal) .text-muted,
+.modal:not(#whiteboardModal) .small.text-muted,
+.modal:not(#whiteboardModal) .form-label.text-muted {
+    color: var(--fc-modal-muted) !important;
+}
+
+.modal:not(#whiteboardModal) .btn-primary {
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.modal:not(#whiteboardModal) .btn-light,
+.modal:not(#whiteboardModal) .btn-outline-secondary,
+.modal:not(#whiteboardModal) .btn-secondary {
+    border-radius: 12px;
+}
+
+.modal:not(#whiteboardModal) .modal-content::before {
+    content: "";
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, #e6edf9 18%, #e6edf9 82%, transparent 100%);
+}
+
+.teacher-conflict-dialog {
+    max-width: 520px;
+}
+
+.modal:not(#whiteboardModal) .modal-content.teacher-conflict-card {
+    position: relative;
+    border: 1px solid #dbe6f3;
+    background:
+        radial-gradient(circle at top right, rgba(22, 163, 74, 0.12), transparent 34%),
+        linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.modal:not(#whiteboardModal) .modal-content.teacher-conflict-card::before {
+    content: none;
+    display: none;
+}
+
+.teacher-conflict-hero {
+    position: relative;
+    margin-top: -1px;
+    min-height: 132px;
+    background:
+        linear-gradient(135deg, rgba(22, 163, 74, 0.14), rgba(59, 130, 246, 0.08));
+    border-bottom: 1px solid #e4edf9;
+    overflow: hidden;
+}
+
+.teacher-conflict-hero__orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(2px);
+    opacity: 0.75;
+}
+
+.teacher-conflict-hero__orb--one {
+    width: 126px;
+    height: 126px;
+    right: -26px;
+    top: -30px;
+    background: rgba(22, 163, 74, 0.16);
+}
+
+.teacher-conflict-hero__orb--two {
+    width: 82px;
+    height: 82px;
+    left: -18px;
+    bottom: -20px;
+    background: rgba(59, 130, 246, 0.14);
+}
+
+.teacher-conflict-hero__icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher-conflict-hero__icon i {
+    width: 62px;
+    height: 62px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    color: #fff;
+    font-size: 1.6rem;
+    box-shadow: 0 14px 30px rgba(22, 163, 74, 0.28);
+}
+
+.teacher-conflict-body {
+    padding: 1.15rem 1.2rem 1.2rem;
+}
+
+.teacher-conflict-title {
+    color: var(--fc-modal-text);
+    font-weight: 800;
+    font-size: 1.15rem;
+    line-height: 1.25;
+}
+
+.teacher-conflict-text {
+    color: var(--fc-modal-muted);
+    line-height: 1.55;
+    font-size: 0.98rem;
+}
+
+.teacher-conflict-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+}
+
+.teacher-conflict-action {
+    min-height: 44px;
+    width: 100%;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.teacher-conflict-action--secondary {
+    --bs-btn-bg: #f4f7fb;
+    --bs-btn-border-color: #d6e0ef;
+    --bs-btn-color: #314866;
+    --bs-btn-hover-bg: #eef3f9;
+    --bs-btn-hover-border-color: #c9d5e6;
+    --bs-btn-hover-color: #1f2f48;
+    --bs-btn-active-bg: #eef3f9;
+    --bs-btn-active-border-color: #c9d5e6;
+    --bs-btn-active-color: #1f2f48;
+    color: #314866;
+    background: #f4f7fb;
+    border-color: #d6e0ef;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.teacher-conflict-action--primary {
+    --bs-btn-bg: #effaf3;
+    --bs-btn-border-color: #cfe9d6;
+    --bs-btn-color: #166534;
+    --bs-btn-hover-bg: #e7f7ec;
+    --bs-btn-hover-border-color: #bedec9;
+    --bs-btn-hover-color: #14532d;
+    --bs-btn-active-bg: #e7f7ec;
+    --bs-btn-active-border-color: #bedec9;
+    --bs-btn-active-color: #14532d;
+    border: 1px solid #cfe9d6;
+    background: #effaf3;
+    color: #166534;
+    box-shadow: none;
+    justify-content: center;
+    text-align: center;
+    gap: 0.35rem;
+}
+
+.teacher-conflict-action--primary:hover {
+    background: #e7f7ec;
+    border-color: #bedec9;
+    color: #14532d;
+}
+
+.teacher-conflict-action--secondary:hover {
+    background: #eef3f9;
+    color: #1f2f48;
+    border-color: #c9d5e6;
+}
+
+#lessonCsatModal .lesson-csat-dialog {
+    max-width: 420px;
+}
+
+#lessonCsatModal .lesson-csat-content {
+    border-radius: 20px;
+}
+
+#lessonCsatModal .lesson-csat-title {
+    font-size: 1.06rem;
+    font-weight: 700;
+    color: #1e2f4e;
+}
+
+#lessonCsatModal .lesson-csat-question {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: #516486;
+}
+
+#lessonCsatModal .lesson-csat-stars {
+    display: flex;
+    width: 100%;
+    gap: 0.35rem;
+}
+
+#lessonCsatModal .lesson-csat-star-btn {
+    flex: 1;
+    border: 1px solid #d8e3f4;
+    background: #ffffff;
+    color: #b7c1d2;
+    padding: 0.2rem 0;
+    border-radius: 12px;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+#lessonCsatModal .lesson-csat-star-btn:hover,
+#lessonCsatModal .lesson-csat-star-btn:focus-visible {
+    background: #f5f8ff;
+    border-color: #bfd2f7;
+    color: #7f95ba;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+#lessonCsatModal .lesson-csat-star-btn.is-selected {
+    border-color: #f6d079;
+    background: #fff8e7;
+    color: #f2c94c;
+}
+
+#lessonCsatModal .lesson-csat-star-icon {
+    font-size: clamp(1.8rem, 5.2vw, 2.1rem);
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.18));
+}
+
+#lessonCsatModal .lesson-csat-comment {
+    border-radius: 12px;
+    border-color: #d5e1f2;
+    font-size: 0.93rem;
+}
+
+#lessonCsatModal .lesson-csat-comment:focus {
+    border-color: #9dbef7;
+    box-shadow: 0 0 0 0.2rem rgba(67, 126, 236, 0.16);
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.confirm-action-overlay {
+    position: fixed;
+    inset: 0;
+    /* Appended to document.body, so it must clear any modal/offcanvas (--z-modal) it's opened from. */
+    z-index: calc(var(--z-modal) + 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(16, 36, 75, 0.34);
+    backdrop-filter: blur(3px);
+}
+
+.confirm-action-modal {
+    width: min(380px, 100%);
+    border-radius: 18px;
+    border: 1px solid #dce6f6;
+    background: #ffffff;
+    box-shadow: 0 14px 36px rgba(16, 36, 75, 0.16);
+    padding: 18px 18px 16px;
+    text-align: center;
+}
+
+.confirm-action-message {
+    margin-bottom: 14px;
+    color: #1f2f48;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.confirm-action-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.confirm-action-btn {
+    min-height: 38px;
+    min-width: 94px;
+    border-radius: 999px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    padding: 0.36rem 0.95rem;
+    border: 1px solid transparent;
+}
+
+.confirm-action-btn-confirm {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #ffffff;
+}
+
+.confirm-action-btn-confirm:hover {
+    background: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
+}
+
+.confirm-action-btn-cancel {
+    background: #ffffff;
+    border-color: #d7e1ef;
+    color: #4a5f81;
+}
+
+.confirm-action-btn-cancel:hover {
+    background: #f8fbff;
+    border-color: #cdd9ea;
+    color: #2f4568;
+}
+
+.confirm-action-btn:focus-visible {
+    outline: 2px solid #73b5ff;
+    outline-offset: 2px;
+}
+
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+@media (max-width: 575.98px) {
+    .app-navbar-inner {
+        min-height: 42px;
+    }
+
+    .app-brand {
+        font-size: 0.96rem;
+    }
+
+    .app-brand-mark {
+        width: 24px;
+        height: 24px;
+        padding: 5px;
+        font-size: 0.85rem;
+        border-radius: 9px;
+    }
+
+    .app-nav-link {
+        font-size: 0.8rem;
+    }
+
+    .app-user-badge {
+        display: inline-flex;
+    }
+
+    .app-main {
+        padding-top: 64px;
+    }
+
+    .modal:not(#whiteboardModal) .modal-content {
+        border-radius: 16px;
+    }
+
+    .modal:not(#whiteboardModal) .modal-header {
+        padding: 0.9rem 0.9rem 0.35rem;
+    }
+
+    .modal:not(#whiteboardModal) .modal-body {
+        padding: 0.7rem 0.9rem 0.9rem;
+    }
+
+    .modal:not(#whiteboardModal) .modal-footer {
+        padding: 0.35rem 0.9rem 0.9rem;
+    }
+
+    .confirm-action-modal {
+        width: min(360px, 100%);
+        border-radius: 16px;
+        padding: 15px 14px 14px;
+    }
+
+    .confirm-action-message {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+
+    .confirm-action-actions {
+        gap: 8px;
+    }
+
+    .confirm-action-btn {
+        min-width: 86px;
+    }
+}

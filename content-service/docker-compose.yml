@@ -1,0 +1,33 @@
+services:
+  content-service:
+    build:
+      context: ..
+      dockerfile: content-service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8003:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./storage:/app/storage
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: content
+      POSTGRES_PASSWORD: content
+      POSTGRES_DB: content
+    ports:
+      - "5434:5432"
+    volumes:
+      - content_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U content"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  content_db_data:

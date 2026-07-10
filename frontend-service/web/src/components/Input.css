@@ -1,0 +1,39 @@
+.fc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fc-space-1);
+}
+
+.fc-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fc-color-text-muted);
+}
+
+.fc-input {
+  background: var(--fc-color-surface);
+  border: 1px solid var(--fc-color-border);
+  border-radius: var(--fc-radius-sm);
+  padding: var(--fc-space-2) var(--fc-space-3);
+  font-size: 14px;
+  color: var(--fc-color-text);
+  transition: border-color var(--fc-transition-fast);
+}
+
+.fc-input:focus-visible {
+  border-color: var(--fc-color-primary);
+}
+
+.fc-input--error {
+  border-color: var(--fc-color-danger);
+}
+
+.fc-field__error {
+  font-size: 12px;
+  color: var(--fc-color-danger);
+}
+
+.fc-field__hint {
+  font-size: 12px;
+  color: var(--fc-color-text-muted);
+}

@@ -1,0 +1,22 @@
+.fc-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fc-account-menu {
+  position: relative;
+}
+
+/*
+ * We drive this dropdown ourselves (no Bootstrap Dropdown/Popper JS), so
+ * .dropdown-menu-end's real alignment rule - scoped to [data-bs-popper],
+ * which only Popper adds - never applies. Anchor it to the right edge
+ * manually instead of relying on that Popper-only selector.
+ */
+.fc-account-menu > .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+}
