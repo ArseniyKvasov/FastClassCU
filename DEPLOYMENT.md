@@ -70,7 +70,13 @@ done
 ```bash
 cd auth-service
 cp .env.example .env
+cp providers.yaml.example providers.yaml
 ```
+
+`providers.yaml` в `.gitignore` (это реальный конфиг OAuth-провайдеров, не
+секрет сам по себе — секреты в нём подставляются из `.env` через
+`${YANDEX_CLIENT_ID}` и т.п.), поэтому на свежем клоне его нет — `Dockerfile`
+не соберётся без этого шага.
 
 Переменные для заполнения в `.env` (остальное уже рабочий дефолт для
 локальной разработки):
