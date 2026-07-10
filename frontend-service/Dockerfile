@@ -13,6 +13,6 @@ COPY libs ./libs
 ENV PYTHONPATH=/app/libs/fastclass-shared
 COPY frontend-service/app ./app
 COPY --from=web-build /web/dist ./web/dist
-COPY frontend-service/keys ./keys
+RUN mkdir keys
 EXPOSE 8000
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

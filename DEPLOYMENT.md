@@ -1,265 +1,113 @@
-# FastClass — быстрый старт (Quick Start)
+# FastClass — быстрый старт
 
-Инструкция по локальному запуску каждого из 9 сервисов через Docker Compose.
-Чек-лист для деплоя (URL, сеть, ресурсы и т.д.) — в отдельном файле
-[CHECKLIST.md](CHECKLIST.md).
+Весь FastClass запускается из корня репозитория одной командой Docker Compose.
+Никаких nginx, certbot или заранее заданного домена в репозитории нет: внешний
+домен, TLS и reverse proxy при необходимости настраиваются вне проекта.
 
-## Требования (Prerequisites)
+## Требования
 
-- Docker + Docker Compose v2 (`docker compose version`)
+- Docker Engine и Docker Compose v2 (`docker compose version`)
 
-## Шаг 0. Сгенерировать JWT-ключи (один раз на весь проект)
-
-Все сервисы проверяют JWT-токены пользователей публичным ключом
-`auth-service`, поэтому ключи нужны раньше всего. `keys/` во всех сервисах
-в `.gitignore` — их нет в свежем клоне репозитория, сгенерировать нужно
-самому:
+## Запуск
 
 ```bash
-cd auth-service
-docker run --rm -v "$(pwd):/app" -w /app python:3.12-slim \
-  sh -c "pip install --quiet cryptography && python scripts/generate_keys.py"
-```
-
-Это создаст `auth-service/keys/private.pem` (приватный, только для
-`auth-service`, никому не передавать) и `auth-service/keys/public.pem`
-(публичный).
-
-Скопируйте `public.pem` в `keys/` каждого сервиса, который проверяет
-JWT-токены сам (у `content-service` и `analytics-service` это не нужно — их
-`docker-compose.yml` уже монтирует ключ напрямую из `auth-service/keys`):
-
-```bash
-for svc in ai-assistant-service answers-service assignments-service \
-           classroom-service frontend-service collaboration-service; do
-  mkdir -p "../$svc/keys"
-  cp keys/public.pem "../$svc/keys/public.pem"
-done
-```
-
-## Общие принципы
-
-- Приложение слушает порт из переменной `PORT` (по умолчанию `8000` внутри
-  контейнера); наружу `docker-compose.yml` пробрасывает свой порт для
-  каждого сервиса — таблица портов в
-  [CHECKLIST.md § Порты](CHECKLIST.md#порты-ports).
-- Собранный образ автоматически сначала прогонит миграции БД в отдельном
-  одноразовом контейнере (`<service>-migrate`), и только потом стартует сам
-  сервис — подробнее в
-  [CHECKLIST.md § Миграции](CHECKLIST.md#миграции-migrations).
-- `DATABASE_URL`, `REDIS_URL`, `EVENT_BUS_REDIS_URL` и т.п. уже настроены на
-  имена контейнеров (`db`, `redis`) внутри docker-сети каждого сервиса —
-  трогать не нужно.
-- Ключи для service-to-service JWT (`SERVICE_CLIENT_SECRET` у вызывающего
-  сервиса и соответствующий `<SERVICE>_SERVICE_CLIENT_SECRET` в
-  `auth-service/.env`) должны совпадать — сгенерируйте любую случайную
-  строку и подставьте в оба места. Ниже это отмечено отдельно там, где
-  применимо.
-
-## Порядок запуска (Startup order)
-
-Жёсткого требования нет (переменные с адресами других сервисов читаются
-лениво, при обращении, а не при старте), но для первого локального прогона
-удобно поднимать в таком порядке: `auth-service` → остальные внутренние
-сервисы в любом порядке → `frontend-service` последним.
-
----
-
-## 1. `auth-service`
-
-```bash
-cd auth-service
 cp .env.example .env
-cp providers.yaml.example providers.yaml
+# заполните OAuth и замените development-секреты перед публичным запуском
+docker compose up --build -d
 ```
 
-`providers.yaml` в `.gitignore` (это реальный конфиг OAuth-провайдеров, не
-секрет сам по себе — секреты в нём подставляются из `.env` через
-`${YANDEX_CLIENT_ID}` и т.п.), поэтому на свежем клоне его нет — `Dockerfile`
-не соберётся без этого шага.
+Compose сам создаёт RS256-ключи для `auth-service`, передаёт публичный ключ
+остальным сервисам и запускает миграции до старта приложений. Приватный ключ
+остаётся только в `auth-service/keys/private.pem` и не коммитится.
 
-Переменные для заполнения в `.env` (остальное уже рабочий дефолт для
-локальной разработки):
-
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET` | нет | вход через Яндекс (Yandex OAuth); без них просто не будет этой кнопки входа |
-| `VK_CLIENT_ID`, `VK_CLIENT_SECRET` | нет | вход через VK (VK OAuth) |
-| `ANSWERS_SERVICE_CLIENT_SECRET` | да, если запускаете `answers-service` | должна совпадать с `SERVICE_CLIENT_SECRET` в `answers-service/.env` |
-| `AI_ASSISTANT_SERVICE_CLIENT_SECRET` | да, если запускаете `ai-assistant-service` | должна совпадать с `SERVICE_CLIENT_SECRET` в `ai-assistant-service/.env` |
-| `COLLABORATION_SERVICE_CLIENT_SECRET` | да, если запускаете `collaboration-service` | должна совпадать с `SERVICE_CLIENT_SECRET` в `collaboration-service/.env` |
-| `OAUTH_STATE_SECRET` | рекомендуется сменить | по умолчанию `dev-insecure-change-me` — для прод-развёртывания заменить на случайную строку |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | нет | адрес OpenTelemetry-коллектора; пусто = трейсинг выключен |
+Просмотреть состояние контейнеров:
 
 ```bash
-docker compose up --build
-curl http://localhost:8001/health
-curl http://localhost:8001/ready
+docker compose ps
+docker compose logs -f
 ```
 
----
-
-## 2. `ai-assistant-service`
+Остановить стек:
 
 ```bash
-cd ai-assistant-service
-cp .env.example .env
+docker compose down
 ```
 
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `SERVICE_CLIENT_SECRET` | да | должна совпадать с `AI_ASSISTANT_SERVICE_CLIENT_SECRET` в `auth-service/.env` |
-| `GIGACHAT_CLIENT_ID`, `GIGACHAT_CLIENT_SECRET` | нет | резервный провайдер генерации (GigaChat); при `USE_MOCK_PROVIDERS=true` (дефолт) не нужны вовсе |
-| `POLLINATIONS_API_KEY`, `OPENROUTER_API_KEY`, `FLUX_BASE_URL`, `FLUX_API_KEY` | нет | провайдеры генерации изображений |
-| `AI_GATEWAY_URL`, `AI_GATEWAY_SECRET` | нет | Cloudflare AI Gateway (проксирует часть провайдеров) |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | нет | адрес OpenTelemetry-коллектора |
+Чтобы вместе с контейнерами удалить данные локальных PostgreSQL:
 
 ```bash
-docker compose up --build
-curl http://localhost:8002/health
-curl http://localhost:8002/ready
+docker compose down -v
 ```
 
----
+## Что заполнить в `.env`
 
-## 3. `content-service`
+### Обязательно для публичного запуска
+
+- `PUBLIC_BASE_URL` — URL frontend-service, который видит браузер. OAuth
+  callback строится как `<PUBLIC_BASE_URL>/auth/<provider>/callback`. Для
+  стандартного локального запуска это `http://localhost:8080`.
+- `AUTH_SERVICE_PUBLIC_BASE_URL` — внешний URL auth-service. Браузер сначала
+  открывает этот адрес для OAuth login, поэтому он должен быть доступен извне.
+- `OAUTH_STATE_SECRET`
+- `ANSWERS_SERVICE_CLIENT_SECRET`
+- `AI_ASSISTANT_SERVICE_CLIENT_SECRET`
+- `COLLABORATION_SERVICE_CLIENT_SECRET`
+- `COLLAB_TOKEN_SECRET`
+- `WHITEBOARD_JWT_SECRET`, если используется whiteboard.
+
+Сгенерировать значение можно так:
 
 ```bash
-cd content-service
-cp .env.example .env
+openssl rand -hex 32
 ```
 
-Пустых переменных, требующих ручного заполнения, нет — кроме опционального
-`OTEL_EXPORTER_OTLP_ENDPOINT` (адрес OpenTelemetry-коллектора, можно
-оставить пустым). Ключ (`keys/public.pem`) сервис берёт напрямую из
-`../auth-service/keys` — отдельно копировать не нужно (см. Шаг 0).
+При работе по HTTPS также поставьте `COOKIE_SECURE=true`. `COOKIE_DOMAIN`
+оставьте пустым, если cookie должна быть привязана только к текущему хосту;
+задайте домен только для намеренно общего cookie между поддоменами.
+
+### OAuth и внешние интеграции
+
+- `YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET` — включают вход через Яндекс.
+- `VK_CLIENT_ID`, `VK_CLIENT_SECRET` — включают вход через VK.
+- `LIVEKIT_*` и `WHITEBOARD_*` — нужны только для соответствующих внешних
+  сервисов.
+- AI provider credentials необязательны, пока `USE_MOCK_PROVIDERS=true`.
+
+Полный список с безопасными локальными дефолтами находится в
+[`.env.example`](.env.example).
+
+## Адреса после запуска
+
+Все сервисы опубликованы на host-портах, поэтому их удобно проверять напрямую:
+
+| Сервис | Адрес |
+|---|---|
+| `frontend-service` | `http://localhost:8080` |
+| `auth-service` | `http://localhost:8001` |
+| `ai-assistant-service` | `http://localhost:8002` |
+| `content-service` | `http://localhost:8003` |
+| `classroom-service` | `http://localhost:8004` |
+| `assignments-service` | `http://localhost:8005` |
+| `answers-service` | `http://localhost:8006` |
+| `collaboration-service` | `http://localhost:8007` |
+| `analytics-service` | `http://localhost:8010` |
+
+Для большинства сервисов доступны `/health` и `/ready`; у
+`collaboration-service` есть `/health` и `/ready`.
+
+Внутри Docker Compose сервисы используют DNS-имена Compose (`auth-service`,
+`content-service` и т.д.), а не `localhost`. Поэтому изменение host-портов в
+`.env` не ломает их внутреннее взаимодействие.
+
+## Миграции
+
+Миграции выполняются одноразовыми контейнерами автоматически. При необходимости
+их можно повторить вручную из корня репозитория:
 
 ```bash
-docker compose up --build
-curl http://localhost:8003/health
-curl http://localhost:8003/ready
+docker compose run --rm auth-migrate
+docker compose run --rm collaboration-migrate
 ```
 
----
-
-## 4. `classroom-service`
-
-```bash
-cd classroom-service
-cp .env.example .env
-```
-
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | нет | видеозвонки (LiveKit — отдельный репозиторий/сервис); без них видеозвонки не заработают, но сервис запустится |
-| `WHITEBOARD_SERVICE_API_KEY` | нет | интеграция с доской (Whiteboard — отдельный репозиторий/сервис) |
-| `WHITEBOARD_JWT_SECRET` | рекомендуется сменить | по умолчанию `dev-insecure-change-me` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | нет | адрес OpenTelemetry-коллектора |
-
-```bash
-docker compose up --build
-curl http://localhost:8004/health
-curl http://localhost:8004/ready
-```
-
----
-
-## 5. `assignments-service`
-
-```bash
-cd assignments-service
-cp .env.example .env
-```
-
-Пустых переменных, требующих ручного заполнения, нет — кроме опционального
-`OTEL_EXPORTER_OTLP_ENDPOINT`.
-
-```bash
-docker compose up --build
-curl http://localhost:8005/health
-curl http://localhost:8005/ready
-```
-
----
-
-## 6. `answers-service`
-
-```bash
-cd answers-service
-cp .env.example .env
-```
-
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `SERVICE_CLIENT_SECRET` | да | должна совпадать с `ANSWERS_SERVICE_CLIENT_SECRET` в `auth-service/.env` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | нет | адрес OpenTelemetry-коллектора |
-
-```bash
-docker compose up --build
-curl http://localhost:8006/health
-curl http://localhost:8006/ready
-```
-
----
-
-## 7. `collaboration-service`
-
-```bash
-cd collaboration-service
-cp .env.example .env
-```
-
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `SERVICE_CLIENT_SECRET` | да | должна совпадать с `COLLABORATION_SERVICE_CLIENT_SECRET` в `auth-service/.env` |
-| `COLLAB_TOKEN_SECRET` | рекомендуется сменить | по умолчанию `replace-me` |
-| `CORS_ORIGINS` | да, если фронтенд обращается напрямую | адрес(а) SPA, которым разрешён доступ к WebSocket |
-
-```bash
-docker compose up --build
-curl http://localhost:8007/health
-```
-
-⚠️ У `collaboration-service` нет эндпоинта `/ready`, только `/health`.
-
----
-
-## 8. `analytics-service`
-
-```bash
-cd analytics-service
-cp .env.example .env
-```
-
-Пустых переменных, требующих ручного заполнения, нет — кроме опционального
-`OTEL_EXPORTER_OTLP_ENDPOINT`. Ключ (`keys/public.pem`) сервис берёт
-напрямую из `../auth-service/keys` — отдельно копировать не нужно
-(см. Шаг 0).
-
-```bash
-docker compose up --build
-curl http://localhost:8010/health
-curl http://localhost:8010/ready
-```
-
----
-
-## 9. `frontend-service` (запускать последним)
-
-```bash
-cd frontend-service
-cp .env.example .env
-```
-
-| Переменная (variable) | Обязательна? | Для чего |
-|---|---|---|
-| `CORS_ALLOW_ORIGINS` | нет | нужен, только если фронтенд обращается с другого домена, чем сам `frontend-service` |
-| `COOKIE_DOMAIN` | да, на проде | домен, для которого будут выставляться cookie сессии (`fastclass.culab.ru`) |
-| `COOKIE_SECURE` | да, на проде | сменить `false` → `true`, сервис работает по HTTPS |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | нет | адрес OpenTelemetry-коллектора |
-
-```bash
-docker compose up --build
-curl http://localhost:8080/health
-curl http://localhost:8080/ready
-```
+Для остальных сервисов используйте соответствующее имя
+`<service>-migrate`.

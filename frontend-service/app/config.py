@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(_SERVICE_ROOT / ".env"), extra="ignore")
 
     auth_service_base_url: str = "http://localhost:8001"
+    auth_service_public_base_url: str = "http://localhost:8001"
     content_service_base_url: str = "http://localhost:8003"
     classroom_service_base_url: str = "http://localhost:8004"
     assignments_service_base_url: str = "http://localhost:8005"

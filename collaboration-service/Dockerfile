@@ -9,7 +9,7 @@ COPY libs/fastclass-node-shared /libs/fastclass-node-shared
 COPY collaboration-service/migrations ./migrations
 COPY collaboration-service/src ./src
 COPY collaboration-service/tsconfig.json ./
-COPY collaboration-service/.env.example ./
+RUN mkdir keys
 
 EXPOSE 8000
 

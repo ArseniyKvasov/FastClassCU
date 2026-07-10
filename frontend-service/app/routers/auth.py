@@ -73,7 +73,7 @@ async def oauth_login(
     # Guest -> full upgrade: carry the guest session id through so auth-service
     # can link the new OAuth identity back to the guest's in-progress work.
     guest_session_id = str(session.user_id) if session and session.access_level == "guest" else None
-    url = f"{settings.auth_service_base_url}/auth/{provider_key}/login"
+    url = f"{settings.auth_service_public_base_url}/auth/{provider_key}/login"
     if guest_session_id:
         url += f"?guest_session_id={guest_session_id}"
     return RedirectResponse(url)
