@@ -1,4 +1,16 @@
 services:
+  auth-migrate:
+    build:
+      context: ..
+      dockerfile: auth-service/Dockerfile
+    env_file:
+      - .env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   auth-service:
     build:
       context: ..
@@ -10,6 +22,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-migrate:
+        condition: service_completed_successfully
     volumes:
       - ./keys:/app/keys
 
@@ -25,6 +41,16 @@ services:
       - auth_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6386:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10

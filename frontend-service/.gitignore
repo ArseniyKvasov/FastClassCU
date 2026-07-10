@@ -14,3 +14,5 @@ venv/
 
 web/node_modules/
 web/dist/
+
+keys/

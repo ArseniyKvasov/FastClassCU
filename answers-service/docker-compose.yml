@@ -1,4 +1,16 @@
 services:
+  answers-migrate:
+    build:
+      context: ..
+      dockerfile: answers-service/Dockerfile
+    env_file:
+      - .env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   answers-service:
     build:
       context: ..
@@ -12,6 +24,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      answers-migrate:
+        condition: service_completed_successfully
     volumes:
       - ./keys:/app/keys
       - ./storage:/app/storage

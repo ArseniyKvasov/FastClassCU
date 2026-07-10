@@ -9,6 +9,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: "no"
 
   analytics-service:
     build:
@@ -23,6 +24,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      analytics-migrate:
+        condition: service_completed_successfully
     volumes:
       - ./storage:/app/storage
       - ../auth-service/keys:/app/keys:ro

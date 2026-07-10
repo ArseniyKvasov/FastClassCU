@@ -1,30 +1,32 @@
 services:
-  assignments-migrate:
+  collaboration-migrate:
     build:
       context: ..
-      dockerfile: assignments-service/Dockerfile
+      dockerfile: collaboration-service/Dockerfile
     env_file:
       - .env
-    command: ["alembic", "upgrade", "head"]
+    command: ["npm", "run", "migrate"]
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./keys:/app/keys
     restart: "no"
 
-  assignments-service:
+  collaboration-service:
     build:
       context: ..
-      dockerfile: assignments-service/Dockerfile
+      dockerfile: collaboration-service/Dockerfile
     env_file:
       - .env
     ports:
-      - "8005:8000"
+      - "8007:8000"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      assignments-migrate:
+      collaboration-migrate:
         condition: service_completed_successfully
     volumes:
       - ./keys:/app/keys
@@ -32,15 +34,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: assignments
-      POSTGRES_PASSWORD: assignments
-      POSTGRES_DB: assignments
+      POSTGRES_USER: collab
+      POSTGRES_PASSWORD: collab
+      POSTGRES_DB: collaboration
     ports:
-      - "5436:5432"
+      - "5439:5432"
     volumes:
-      - assignments_db_data:/var/lib/postgresql/data
+      - collaboration_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U assignments"]
+      test: ["CMD-SHELL", "pg_isready -U collab"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -48,7 +50,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6381:6379"
+      - "6384:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -56,4 +58,4 @@ services:
       retries: 10
 
 volumes:
-  assignments_db_data:
+  collaboration_db_data:

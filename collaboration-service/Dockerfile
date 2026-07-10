@@ -2,13 +2,14 @@ FROM node:22-slim
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY collaboration-service/package.json collaboration-service/package-lock.json ./
 RUN npm ci
 
-COPY migrations ./migrations
-COPY src ./src
-COPY tsconfig.json ./
-COPY .env.example ./
+COPY libs/fastclass-node-shared /libs/fastclass-node-shared
+COPY collaboration-service/migrations ./migrations
+COPY collaboration-service/src ./src
+COPY collaboration-service/tsconfig.json ./
+COPY collaboration-service/.env.example ./
 
 EXPOSE 8000
 

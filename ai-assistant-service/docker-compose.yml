@@ -1,8 +1,8 @@
 services:
-  assignments-migrate:
+  ai-assistant-migrate:
     build:
       context: ..
-      dockerfile: assignments-service/Dockerfile
+      dockerfile: ai-assistant-service/Dockerfile
     env_file:
       - .env
     command: ["alembic", "upgrade", "head"]
@@ -11,20 +11,20 @@ services:
         condition: service_healthy
     restart: "no"
 
-  assignments-service:
+  ai-assistant-service:
     build:
       context: ..
-      dockerfile: assignments-service/Dockerfile
+      dockerfile: ai-assistant-service/Dockerfile
     env_file:
       - .env
     ports:
-      - "8005:8000"
+      - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-      assignments-migrate:
+      ai-assistant-migrate:
         condition: service_completed_successfully
     volumes:
       - ./keys:/app/keys
@@ -32,15 +32,15 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: assignments
-      POSTGRES_PASSWORD: assignments
-      POSTGRES_DB: assignments
+      POSTGRES_USER: ai
+      POSTGRES_PASSWORD: ai
+      POSTGRES_DB: ai_assistant
     ports:
-      - "5436:5432"
+      - "5438:5432"
     volumes:
-      - assignments_db_data:/var/lib/postgresql/data
+      - ai_assistant_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U assignments"]
+      test: ["CMD-SHELL", "pg_isready -U ai"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -48,7 +48,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6381:6379"
+      - "6385:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -56,4 +56,4 @@ services:
       retries: 10
 
 volumes:
-  assignments_db_data:
+  ai_assistant_db_data:

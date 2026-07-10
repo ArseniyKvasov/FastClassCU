@@ -25,3 +25,4 @@ dist/
 # Misc
 *.log
 dump.rdb
+TASKS.md

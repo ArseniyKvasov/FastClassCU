@@ -12,7 +12,6 @@ import { getAnswerSnapshot, healthcheckAnswers, pushAnswerSnapshot } from "./ans
 import { AuthError, issueCollabToken, verifyAuthToken, verifyCollabToken } from "./auth.js";
 import { settings } from "./config.js";
 import { isTeacherOfContext } from "./context-client.js";
-import { runMigrations } from "./migrations.js";
 import { buildRoomId } from "./room.js";
 import { emptyDocumentJson, jsonToYDoc } from "./schema.js";
 import { CollabStorage } from "./storage.js";
@@ -320,7 +319,6 @@ async function shutdown(): Promise<void> {
 }
 
 async function start(): Promise<void> {
-  await runMigrations(storage.pool);
   await new Promise<void>((resolve) => {
     httpServer.listen(settings.port, resolve);
   });
