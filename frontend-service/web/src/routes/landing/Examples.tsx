@@ -1,6 +1,6 @@
-import englishCard from "../../legacy/images/home/english-lesson-card.png";
-import mathCard from "../../legacy/images/home/math-lesson-card.png";
-import socialCard from "../../legacy/images/home/social-studies-lesson-card.png";
+import englishCard from "../../legacy/images/home/present-continuous-lesson-card.webp";
+import clothesCard from "../../legacy/images/home/clothes-lesson-card.webp";
+import environmentCard from "../../legacy/images/home/environmental-lesson-card.webp";
 
 interface ExamplesProps {
   onPreview: (src: string, alt: string) => void;
@@ -17,18 +17,17 @@ export function Examples({ onPreview }: ExamplesProps) {
             className="fc-card fc-example-card js-lesson-preview-card"
             role="button"
             tabIndex={0}
-            onClick={() => onPreview(englishCard, "Карточка урока: Present Continuous")}
+            onClick={() => onPreview(clothesCard, "Карточка урока: Clothes")}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onPreview(englishCard, "Карточка урока: Present Continuous");
+                onPreview(clothesCard, "Карточка урока: Clothes");
               }
             }}
           >
-            <span className="fc-example-badge blue">Английский язык</span>
-            <div className="fc-example-title">Present Continuous</div>
-            <div className="fc-example-count">12 заданий</div>
-            <img src={englishCard} alt="Карточка урока" className="fc-example-preview" />
+            <div className="fc-example-title">Clothes</div>
+            <div className="fc-example-count">10 заданий</div>
+            <img src={clothesCard} alt="Карточка урока" className="fc-example-preview" />
           </div>
         </div>
 
@@ -37,18 +36,17 @@ export function Examples({ onPreview }: ExamplesProps) {
             className="fc-card fc-example-card js-lesson-preview-card"
             role="button"
             tabIndex={0}
-            onClick={() => onPreview(mathCard, "Карточка урока: Десятичные дроби")}
+            onClick={() => onPreview(englishCard, "Карточка урока: Present Continuous")}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onPreview(mathCard, "Карточка урока: Десятичные дроби");
+                onPreview(englishCard, "Карточка урока: Present Continuous");
               }
             }}
           >
-            <span className="fc-example-badge green">Математика</span>
-            <div className="fc-example-title">Десятичные дроби</div>
-            <div className="fc-example-count">10 заданий</div>
-            <img src={mathCard} alt="Карточка урока" className="fc-example-preview" />
+            <div className="fc-example-title">Present Continuous</div>
+            <div className="fc-example-count">12 заданий</div>
+            <img src={englishCard} alt="Карточка урока" className="fc-example-preview" />
           </div>
         </div>
 
@@ -57,18 +55,17 @@ export function Examples({ onPreview }: ExamplesProps) {
             className="fc-card fc-example-card js-lesson-preview-card"
             role="button"
             tabIndex={0}
-            onClick={() => onPreview(socialCard, "Карточка урока: Права граждан")}
+            onClick={() => onPreview(environmentCard, "Карточка урока: Environment")}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onPreview(socialCard, "Карточка урока: Права граждан");
+                onPreview(environmentCard, "Карточка урока: Environment");
               }
             }}
           >
-            <span className="fc-example-badge indigo">Обществознание</span>
-            <div className="fc-example-title">Права граждан</div>
+            <div className="fc-example-title">Environment</div>
             <div className="fc-example-count">14 заданий</div>
-            <img src={socialCard} alt="Карточка урока" className="fc-example-preview" />
+            <img src={environmentCard} alt="Карточка урока" className="fc-example-preview" />
           </div>
         </div>
       </div>

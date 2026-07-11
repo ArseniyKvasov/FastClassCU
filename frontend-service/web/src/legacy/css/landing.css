@@ -368,7 +368,7 @@
     height: 100%;
     background:
         linear-gradient(90deg, rgba(16, 32, 66, 0.28), rgba(16, 32, 66, 0.06)),
-        url("../images/home/hero-student-photo.png") center/cover no-repeat;
+        url("../images/home/hero-student-photo-call.webp") center/cover no-repeat;
     position: relative;
 }
 
@@ -918,6 +918,7 @@
         right: -110px;
         background: rgba(255, 255, 255, 0.08);
         pointer-events: none;
+        animation: fc-cta-float-1 9s ease-in-out infinite;
     }
     .fc-cta::after {
         content: "";
@@ -929,6 +930,18 @@
         left: -70px;
         background: rgba(255, 255, 255, 0.06);
         pointer-events: none;
+        animation: fc-cta-float-2 11s ease-in-out infinite;
+    }
+    @keyframes fc-cta-float-1 {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-18px, 22px); }
+    }
+    @keyframes fc-cta-float-2 {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(16px, -18px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .fc-cta::before, .fc-cta::after { animation: none; }
     }
     .fc-cta > * {
         position: relative;

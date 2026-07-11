@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import heroTutor from "../../legacy/images/home/hero-tutor.png";
-import heroStudent from "../../legacy/images/home/hero-student.png";
+import heroTutor from "../../legacy/images/home/hero-tutor-photo-chat.webp";
+import heroStudent from "../../legacy/images/home/hero-student-photo-chat.webp";
 
 interface HeroProps {
   onGuestStart: () => void;
