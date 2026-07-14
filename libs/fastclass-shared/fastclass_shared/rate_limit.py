@@ -29,7 +29,11 @@ class RedisRateLimiter:
 
     async def hit(self, rule: RateLimitRule, *parts: str) -> None:
         key = ":".join([self.prefix, self.service_name, rule.name, *parts])
-        client = redis.from_url(self.redis_url, decode_responses=True)
+        client = redis.from_url(
+            self.redis_url,
+            decode_responses=True,
+            max_connections=2,
+        )
         try:
             current = await client.incr(key)
             if current == 1:

@@ -78,7 +78,11 @@ async def ready():
     try:
         from redis.asyncio import from_url
 
-        client = from_url(settings.rate_limit_redis_url, decode_responses=True)
+        client = from_url(
+            settings.rate_limit_redis_url,
+            decode_responses=True,
+            max_connections=2,
+        )
         await client.ping()
         await client.aclose()
         checks["rate_limit_redis"] = "ok"
@@ -89,7 +93,11 @@ async def ready():
         try:
             from redis.asyncio import from_url
 
-            client = from_url(settings.event_bus_redis_url, decode_responses=True)
+            client = from_url(
+                settings.event_bus_redis_url,
+                decode_responses=True,
+                max_connections=2,
+            )
             await client.ping()
             await client.aclose()
             checks["event_bus_redis"] = "ok"

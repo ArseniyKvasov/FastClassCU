@@ -96,7 +96,11 @@ async def ready():
 
     if settings.event_bus_enabled:
         try:
-            client = redis.from_url(settings.event_bus_redis_url, decode_responses=True)
+            client = redis.from_url(
+                settings.event_bus_redis_url,
+                decode_responses=True,
+                max_connections=2,
+            )
             await client.ping()
             await client.aclose()
             checks["event_bus_redis"] = "ok"
@@ -104,7 +108,11 @@ async def ready():
             checks["event_bus_redis"] = f"error: {exc}"
 
     try:
-        client = redis.from_url(settings.rate_limit_redis_url, decode_responses=True)
+        client = redis.from_url(
+            settings.rate_limit_redis_url,
+            decode_responses=True,
+            max_connections=2,
+        )
         await client.ping()
         await client.aclose()
         checks["rate_limit_redis"] = "ok"

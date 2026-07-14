@@ -9,26 +9,27 @@ services:
       [ -f keys/private.pem ] || python scripts/generate_keys.py'
     restart: "no"
 
-  auth-db:
+  postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: auth
-      POSTGRES_PASSWORD: auth
-      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
-      - "${AUTH_DB_PORT:-5433}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - auth_db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh:ro
     healthcheck: &postgres_healthcheck
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  auth-redis:
+  redis:
     image: redis:7-alpine
     ports:
-      - "${AUTH_REDIS_PORT:-6386}:6379"
+      - "${REDIS_PORT:-6379}:6379"
     healthcheck: &redis_healthcheck
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -41,14 +42,14 @@ services:
       dockerfile: auth-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://auth:auth@auth-db:5432/auth
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://auth-redis:6379/0
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/auth}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${AUTH_RATE_LIMIT_REDIS_URL:-redis://redis:6379/1}
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      auth-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys
@@ -60,40 +61,22 @@ services:
       dockerfile: auth-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://auth:auth@auth-db:5432/auth
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://auth-redis:6379/0
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/auth}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${AUTH_RATE_LIMIT_REDIS_URL:-redis://redis:6379/1}
     ports:
       - "${AUTH_PORT:-8001}:8000"
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      auth-db:
+      postgres:
         condition: service_healthy
-      auth-redis:
+      redis:
         condition: service_healthy
       auth-migrate:
         condition: service_completed_successfully
     volumes:
       - ./auth-service/keys:/app/keys
-
-  content-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: content
-      POSTGRES_PASSWORD: content
-      POSTGRES_DB: content
-    ports:
-      - "${CONTENT_DB_PORT:-5434}:5432"
-    volumes:
-      - content_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  content-redis:
-    image: redis:7-alpine
-    ports:
-      - "${CONTENT_REDIS_PORT:-6383}:6379"
-    healthcheck: *redis_healthcheck
 
   content-migrate:
     build:
@@ -101,13 +84,13 @@ services:
       dockerfile: content-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://content:content@content-db:5432/content
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${CONTENT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/content}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      content-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -119,16 +102,16 @@ services:
       dockerfile: content-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://content:content@content-db:5432/content
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${CONTENT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/content}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
     ports:
       - "${CONTENT_PORT:-8003}:8000"
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      content-db:
+      postgres:
         condition: service_healthy
-      content-redis:
+      redis:
         condition: service_healthy
       content-migrate:
         condition: service_completed_successfully
@@ -136,39 +119,21 @@ services:
       - ./content-service/storage:/app/storage
       - ./auth-service/keys:/app/keys:ro
 
-  classroom-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: classroom
-      POSTGRES_PASSWORD: classroom
-      POSTGRES_DB: classroom
-    ports:
-      - "${CLASSROOM_DB_PORT:-5435}:5432"
-    volumes:
-      - classroom_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  classroom-redis:
-    image: redis:7-alpine
-    ports:
-      - "${CLASSROOM_REDIS_PORT:-6380}:6379"
-    healthcheck: *redis_healthcheck
-
   classroom-migrate:
     build:
       context: .
       dockerfile: classroom-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://classroom:classroom@classroom-db:5432/classroom
-      REDIS_URL: redis://classroom-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://classroom-redis:6379/0
+      DATABASE_URL: ${CLASSROOM_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/classroom}
+      REDIS_URL: ${CLASSROOM_REDIS_URL:-redis://redis:6379/2}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${CLASSROOM_RATE_LIMIT_REDIS_URL:-redis://redis:6379/2}
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      classroom-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -180,41 +145,23 @@ services:
       dockerfile: classroom-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://classroom:classroom@classroom-db:5432/classroom
-      REDIS_URL: redis://classroom-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://classroom-redis:6379/0
+      DATABASE_URL: ${CLASSROOM_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/classroom}
+      REDIS_URL: ${CLASSROOM_REDIS_URL:-redis://redis:6379/2}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${CLASSROOM_RATE_LIMIT_REDIS_URL:-redis://redis:6379/2}
     ports:
       - "${CLASSROOM_PORT:-8004}:8000"
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      classroom-db:
+      postgres:
         condition: service_healthy
-      classroom-redis:
+      redis:
         condition: service_healthy
       classroom-migrate:
         condition: service_completed_successfully
     volumes:
       - ./auth-service/keys:/app/keys:ro
-
-  assignments-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: assignments
-      POSTGRES_PASSWORD: assignments
-      POSTGRES_DB: assignments
-    ports:
-      - "${ASSIGNMENTS_DB_PORT:-5436}:5432"
-    volumes:
-      - assignments_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  assignments-redis:
-    image: redis:7-alpine
-    ports:
-      - "${ASSIGNMENTS_REDIS_PORT:-6381}:6379"
-    healthcheck: *redis_healthcheck
 
   assignments-migrate:
     build:
@@ -222,15 +169,15 @@ services:
       dockerfile: assignments-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://assignments:assignments@assignments-db:5432/assignments
-      REDIS_URL: redis://assignments-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ASSIGNMENTS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/assignments}
+      REDIS_URL: ${ASSIGNMENTS_REDIS_URL:-redis://redis:6379/3}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      assignments-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -242,41 +189,23 @@ services:
       dockerfile: assignments-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://assignments:assignments@assignments-db:5432/assignments
-      REDIS_URL: redis://assignments-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ASSIGNMENTS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/assignments}
+      REDIS_URL: ${ASSIGNMENTS_REDIS_URL:-redis://redis:6379/3}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
     ports:
       - "${ASSIGNMENTS_PORT:-8005}:8000"
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      assignments-db:
+      postgres:
         condition: service_healthy
-      assignments-redis:
+      redis:
         condition: service_healthy
       assignments-migrate:
         condition: service_completed_successfully
     volumes:
       - ./auth-service/keys:/app/keys:ro
-
-  answers-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: answers
-      POSTGRES_PASSWORD: answers
-      POSTGRES_DB: answers
-    ports:
-      - "${ANSWERS_DB_PORT:-5437}:5432"
-    volumes:
-      - answers_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  answers-redis:
-    image: redis:7-alpine
-    ports:
-      - "${ANSWERS_REDIS_PORT:-6382}:6379"
-    healthcheck: *redis_healthcheck
 
   answers-migrate:
     build:
@@ -284,9 +213,9 @@ services:
       dockerfile: answers-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://answers:answers@answers-db:5432/answers
-      REDIS_URL: redis://answers-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ANSWERS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/answers}
+      REDIS_URL: ${ANSWERS_REDIS_URL:-redis://redis:6379/4}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -296,7 +225,7 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      answers-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -309,9 +238,9 @@ services:
       dockerfile: answers-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://answers:answers@answers-db:5432/answers
-      REDIS_URL: redis://answers-redis:6379/0
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ANSWERS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/answers}
+      REDIS_URL: ${ANSWERS_REDIS_URL:-redis://redis:6379/4}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -322,9 +251,9 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      answers-db:
+      postgres:
         condition: service_healthy
-      answers-redis:
+      redis:
         condition: service_healthy
       answers-migrate:
         condition: service_completed_successfully
@@ -332,33 +261,15 @@ services:
       - ./auth-service/keys:/app/keys:ro
       - ./answers-service/storage:/app/storage
 
-  ai-assistant-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ai
-      POSTGRES_PASSWORD: ai
-      POSTGRES_DB: ai_assistant
-    ports:
-      - "${AI_ASSISTANT_DB_PORT:-5438}:5432"
-    volumes:
-      - ai_assistant_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  ai-assistant-redis:
-    image: redis:7-alpine
-    ports:
-      - "${AI_ASSISTANT_REDIS_PORT:-6385}:6379"
-    healthcheck: *redis_healthcheck
-
   ai-assistant-migrate:
     build:
       context: .
       dockerfile: ai-assistant-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://ai:ai@ai-assistant-db:5432/ai_assistant
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://ai-assistant-redis:6379/0
+      DATABASE_URL: ${AI_ASSISTANT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${AI_ASSISTANT_RATE_LIMIT_REDIS_URL:-redis://redis:6379/5}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       SERVICE_CLIENT_SECRET: ${AI_ASSISTANT_SERVICE_CLIENT_SECRET}
@@ -366,7 +277,7 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      ai-assistant-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -378,9 +289,9 @@ services:
       dockerfile: ai-assistant-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://ai:ai@ai-assistant-db:5432/ai_assistant
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
-      RATE_LIMIT_REDIS_URL: redis://ai-assistant-redis:6379/0
+      DATABASE_URL: ${AI_ASSISTANT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      RATE_LIMIT_REDIS_URL: ${AI_ASSISTANT_RATE_LIMIT_REDIS_URL:-redis://redis:6379/5}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       SERVICE_CLIENT_SECRET: ${AI_ASSISTANT_SERVICE_CLIENT_SECRET}
@@ -389,32 +300,14 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      ai-assistant-db:
+      postgres:
         condition: service_healthy
-      ai-assistant-redis:
+      redis:
         condition: service_healthy
       ai-assistant-migrate:
         condition: service_completed_successfully
     volumes:
       - ./auth-service/keys:/app/keys:ro
-
-  collaboration-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: collab
-      POSTGRES_PASSWORD: collab
-      POSTGRES_DB: collaboration
-    ports:
-      - "${COLLABORATION_DB_PORT:-5439}:5432"
-    volumes:
-      - collaboration_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  collaboration-redis:
-    image: redis:7-alpine
-    ports:
-      - "${COLLABORATION_REDIS_PORT:-6384}:6379"
-    healthcheck: *redis_healthcheck
 
   collaboration-migrate:
     build:
@@ -422,8 +315,8 @@ services:
       dockerfile: collaboration-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://collab:collab@collaboration-db:5432/collaboration
-      REDIS_URL: redis://collaboration-redis:6379/0
+      DATABASE_URL: ${COLLABORATION_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/collaboration}
+      REDIS_URL: ${COLLABORATION_REDIS_URL:-redis://redis:6379/6}
       ANSWERS_SERVICE_BASE_URL: http://answers-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -433,7 +326,7 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      collaboration-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./auth-service/keys:/app/keys:ro
@@ -445,8 +338,8 @@ services:
       dockerfile: collaboration-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://collab:collab@collaboration-db:5432/collaboration
-      REDIS_URL: redis://collaboration-redis:6379/0
+      DATABASE_URL: ${COLLABORATION_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/collaboration}
+      REDIS_URL: ${COLLABORATION_REDIS_URL:-redis://redis:6379/6}
       ANSWERS_SERVICE_BASE_URL: http://answers-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -457,32 +350,14 @@ services:
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      collaboration-db:
+      postgres:
         condition: service_healthy
-      collaboration-redis:
+      redis:
         condition: service_healthy
       collaboration-migrate:
         condition: service_completed_successfully
     volumes:
       - ./auth-service/keys:/app/keys:ro
-
-  analytics-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: analytics
-      POSTGRES_PASSWORD: analytics
-      POSTGRES_DB: analytics
-    ports:
-      - "${ANALYTICS_DB_PORT:-5440}:5432"
-    volumes:
-      - analytics_db_data:/var/lib/postgresql/data
-    healthcheck: *postgres_healthcheck
-
-  analytics-redis:
-    image: redis:7-alpine
-    ports:
-      - "${ANALYTICS_REDIS_PORT:-6390}:6379"
-    healthcheck: *redis_healthcheck
 
   analytics-migrate:
     build:
@@ -490,13 +365,13 @@ services:
       dockerfile: analytics-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://analytics:analytics@analytics-db:5432/analytics
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ANALYTICS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/analytics}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      analytics-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./analytics-service/storage:/app/storage
@@ -509,16 +384,16 @@ services:
       dockerfile: analytics-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://analytics:analytics@analytics-db:5432/analytics
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      DATABASE_URL: ${ANALYTICS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/analytics}
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
     ports:
       - "${ANALYTICS_PORT:-8010}:8000"
     depends_on:
       keys-init:
         condition: service_completed_successfully
-      analytics-db:
+      postgres:
         condition: service_healthy
-      analytics-redis:
+      redis:
         condition: service_healthy
       analytics-migrate:
         condition: service_completed_successfully
@@ -537,7 +412,7 @@ services:
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
       ASSIGNMENTS_SERVICE_BASE_URL: http://assignments-service:8000
-      EVENT_BUS_REDIS_URL: redis://analytics-redis:6379/0
+      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
     ports:
       - "${FRONTEND_PORT:-8080}:8000"
     depends_on:
@@ -555,11 +430,4 @@ services:
       - ./auth-service/keys:/app/keys:ro
 
 volumes:
-  auth_db_data:
-  content_db_data:
-  classroom_db_data:
-  assignments_db_data:
-  answers_db_data:
-  ai_assistant_db_data:
-  collaboration_db_data:
-  analytics_db_data:
+  postgres_data:

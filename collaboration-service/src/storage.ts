@@ -15,6 +15,7 @@ export class CollabStorage {
   constructor() {
     this.pool = new Pool({
       connectionString: settings.databaseUrl,
+      max: 2,
     });
   }
 

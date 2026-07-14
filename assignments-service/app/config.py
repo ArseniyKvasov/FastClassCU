@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql+asyncpg://assignments:assignments@localhost:5436/assignments"
-    redis_url: str = "redis://localhost:6381/0"
+    redis_url: str = "redis://localhost:6379/3"
 
     jwt_public_key_path: str = "keys/public.pem"
     jwt_issuer: str = "auth-service"

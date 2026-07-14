@@ -9,7 +9,11 @@ from fastclass_shared.events import RelayConfig, run_relay_loop
 
 
 def _event_bus_client() -> redis.Redis:
-    return redis.from_url(settings.event_bus_redis_url, decode_responses=True)
+    return redis.from_url(
+        settings.event_bus_redis_url,
+        decode_responses=True,
+        max_connections=2,
+    )
 
 
 async def _list_unpublished_events(limit: int):
