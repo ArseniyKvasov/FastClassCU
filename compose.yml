@@ -42,9 +42,9 @@ services:
       dockerfile: auth-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/auth}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
-      RATE_LIMIT_REDIS_URL: ${AUTH_RATE_LIMIT_REDIS_URL:-redis://redis:6379/1}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/auth
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_REDIS_URL: redis://redis:6379/1
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
@@ -61,9 +61,9 @@ services:
       dockerfile: auth-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/auth}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
-      RATE_LIMIT_REDIS_URL: ${AUTH_RATE_LIMIT_REDIS_URL:-redis://redis:6379/1}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/auth
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_REDIS_URL: redis://redis:6379/1
     ports:
       - "${AUTH_PORT:-8001}:8000"
     depends_on:
@@ -84,8 +84,8 @@ services:
       dockerfile: content-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${CONTENT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/content}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/content
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
@@ -102,8 +102,8 @@ services:
       dockerfile: content-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${CONTENT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/content}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/content
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
     ports:
       - "${CONTENT_PORT:-8003}:8000"
     depends_on:
@@ -125,9 +125,9 @@ services:
       dockerfile: classroom-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${CLASSROOM_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/classroom}
-      REDIS_URL: ${CLASSROOM_REDIS_URL:-redis://redis:6379/2}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/classroom
+      REDIS_URL: redis://redis:6379/2
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       RATE_LIMIT_REDIS_URL: ${CLASSROOM_RATE_LIMIT_REDIS_URL:-redis://redis:6379/2}
     command: ["alembic", "upgrade", "head"]
     depends_on:
@@ -145,9 +145,9 @@ services:
       dockerfile: classroom-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${CLASSROOM_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/classroom}
-      REDIS_URL: ${CLASSROOM_REDIS_URL:-redis://redis:6379/2}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/classroom
+      REDIS_URL: redis://redis:6379/2
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       RATE_LIMIT_REDIS_URL: ${CLASSROOM_RATE_LIMIT_REDIS_URL:-redis://redis:6379/2}
     ports:
       - "${CLASSROOM_PORT:-8004}:8000"
@@ -169,9 +169,9 @@ services:
       dockerfile: assignments-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ASSIGNMENTS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/assignments}
-      REDIS_URL: ${ASSIGNMENTS_REDIS_URL:-redis://redis:6379/3}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/assignments
+      REDIS_URL: redis://redis:6379/3
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
     command: ["alembic", "upgrade", "head"]
     depends_on:
@@ -189,9 +189,9 @@ services:
       dockerfile: assignments-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ASSIGNMENTS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/assignments}
-      REDIS_URL: ${ASSIGNMENTS_REDIS_URL:-redis://redis:6379/3}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/assignments
+      REDIS_URL: redis://redis:6379/3
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
     ports:
       - "${ASSIGNMENTS_PORT:-8005}:8000"
@@ -213,9 +213,9 @@ services:
       dockerfile: answers-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ANSWERS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/answers}
-      REDIS_URL: ${ANSWERS_REDIS_URL:-redis://redis:6379/4}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/answers
+      REDIS_URL: redis://redis:6379/4
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -238,9 +238,9 @@ services:
       dockerfile: answers-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ANSWERS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/answers}
-      REDIS_URL: ${ANSWERS_REDIS_URL:-redis://redis:6379/4}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/answers
+      REDIS_URL: redis://redis:6379/4
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -267,8 +267,8 @@ services:
       dockerfile: ai-assistant-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${AI_ASSISTANT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       RATE_LIMIT_REDIS_URL: ${AI_ASSISTANT_RATE_LIMIT_REDIS_URL:-redis://redis:6379/5}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
@@ -289,8 +289,8 @@ services:
       dockerfile: ai-assistant-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${AI_ASSISTANT_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ai_assistant
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
       RATE_LIMIT_REDIS_URL: ${AI_ASSISTANT_RATE_LIMIT_REDIS_URL:-redis://redis:6379/5}
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
@@ -315,8 +315,8 @@ services:
       dockerfile: collaboration-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${COLLABORATION_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/collaboration}
-      REDIS_URL: ${COLLABORATION_REDIS_URL:-redis://redis:6379/6}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/collaboration
+      REDIS_URL: redis://redis:6379/6
       ANSWERS_SERVICE_BASE_URL: http://answers-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -338,8 +338,8 @@ services:
       dockerfile: collaboration-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${COLLABORATION_DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/collaboration}
-      REDIS_URL: ${COLLABORATION_REDIS_URL:-redis://redis:6379/6}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/collaboration
+      REDIS_URL: redis://redis:6379/6
       ANSWERS_SERVICE_BASE_URL: http://answers-service:8000
       AUTH_SERVICE_BASE_URL: http://auth-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
@@ -365,8 +365,8 @@ services:
       dockerfile: analytics-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ANALYTICS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/analytics}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analytics
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
     command: ["alembic", "upgrade", "head"]
     depends_on:
       keys-init:
@@ -384,8 +384,8 @@ services:
       dockerfile: analytics-service/Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: ${ANALYTICS_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@postgres:5432/analytics}
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/analytics
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
     ports:
       - "${ANALYTICS_PORT:-8010}:8000"
     depends_on:
@@ -412,7 +412,7 @@ services:
       CONTENT_SERVICE_BASE_URL: http://content-service:8000
       CLASSROOM_SERVICE_BASE_URL: http://classroom-service:8000
       ASSIGNMENTS_SERVICE_BASE_URL: http://assignments-service:8000
-      EVENT_BUS_REDIS_URL: ${EVENT_BUS_REDIS_URL:-redis://redis:6379/0}
+      EVENT_BUS_REDIS_URL: redis://redis:6379/0
     ports:
       - "${FRONTEND_PORT:-8080}:8000"
     depends_on:
